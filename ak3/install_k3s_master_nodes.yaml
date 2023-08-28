@@ -1,0 +1,31 @@
+---
+- name: Install K3s Master Nodes
+  hosts: master
+  tasks:
+    - name: Create config directory
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+
+    - name: Create token file
+      copy:
+        content: "supersecrettoken"
+        dest: /etc/rancher/k3s/cluster-token
+
+    - name: Create kubelet configuration file
+      copy:
+        src: kubelet.config
+        dest: /etc/rancher/k3s/kubelet.config
+
+    - name: Create K3s config file
+      template:
+        src: k3s_config_master.yaml.j2
+        dest: /etc/rancher/k3s/config.yaml
+
+    - name: Install primary master node
+      shell: "curl -sfL https://get.k3s.io | sh -s - server --cluster-init"
+      when: inventory_hostname == 'kube-1.home'
+
+    - name: Install secondary master nodes
+      shell: "curl -sfL https://get.k3s.io | sh -s - server --server https://{{ hostvars['kube-1.home']['ansible_host'] }}:6443"
+      when: inventory_hostname != 'kube-1.home'

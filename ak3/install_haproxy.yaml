@@ -1,0 +1,26 @@
+---
+- name: Install HAProxy
+  hosts: haproxy
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Install HAProxy
+      apt:
+        name: haproxy
+        state: present
+
+    - name: Copy HAProxy configuration
+      copy:
+        src: haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
+      notify:
+        - Restart HAProxy
+
+  handlers:
+    - name: Restart HAProxy
+      systemd:
+        name: haproxy
+        state: restarted
