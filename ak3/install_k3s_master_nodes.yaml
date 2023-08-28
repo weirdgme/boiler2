@@ -1,6 +1,7 @@
 ---
 - name: Install K3s Master Nodes
   hosts: master
+  become: true
   tasks:
     - name: Create config directory
       file:

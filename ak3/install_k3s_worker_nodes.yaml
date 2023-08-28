@@ -1,6 +1,7 @@
 ---
 - name: Install K3s Worker Nodes
   hosts: node
+  become: true
   tasks:
     - name: Create config directory
       file:
