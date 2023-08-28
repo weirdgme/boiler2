@@ -2,11 +2,6 @@
 - name: Install HAProxy
   hosts: haproxy
   tasks:
-    - name: Update and upgrade apt packages
-      apt:
-        upgrade: yes
-        update_cache: yes
-
     - name: Install HAProxy
       apt:
         name: haproxy
