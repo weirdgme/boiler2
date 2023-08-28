@@ -24,4 +24,4 @@
         dest: /etc/rancher/k3s/config.yaml
 
     - name: Install agent node
-      shell: "curl -sfL https://get.k3s.io | sh -s - agent --server https://{{ k3s_api_loadbalancer_ip }}:6443"
+      shell: "curl -sfL https://get.k3s.io | sh -s - agent --server https://kube-haproxy.home:6443"
