@@ -69,6 +69,10 @@
     - name: Reboot the server
       reboot:
 
+- name: Reset Kubernetes Cluster
+  command: kubeadm reset -f
+  when: inventory_hostname == groups['master'][0]
+
 - name: Initialize Kubernetes Cluster
   hosts: master[0]
   become: yes
