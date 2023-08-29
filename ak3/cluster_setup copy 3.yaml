@@ -116,6 +116,16 @@
           - kubectl
         state: present
 
+    # - name: Disable swap
+    #   command: swapoff -a
+    #   when: ansible_os_family == "Debian"
+
+    # - name: Remove swap from fstab
+    #   lineinfile:
+    #     path: /etc/fstab
+    #     regexp: '.*swap.*'
+    #     state: absent
+
     - name: Enable bridging
       sysctl:
         name: net.ipv4.ip_forward
@@ -148,6 +158,19 @@
       when: inventory_hostname == groups['master'][0]
       register: kubeadm_token_hash
 
+    # - name: Fetch kubeadm_token_hash from master[0]
+    #   fetch:
+    #     src: /tmp/kubeadm_token_hash
+    #     dest: /tmp/kubeadm_token_hash
+    #   when: inventory_hostname == groups['master'][0]
+
+    - name: copy kubeadm_token_hash to other nodes
+      copy:
+        src: /tmp/kubeadm_token_hash
+        dest: /tmp/
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['k3s_cluster'] }}"
+
     - name: Copy kube config file to user's home directory
       shell: |
         mkdir -p $HOME/.kube &&
@@ -156,11 +179,11 @@
       when: inventory_hostname == groups['master'][0]
 
     - name: Copy kubeadm_token_hash to other nodes
-      ansible.builtin.distribute:
+      copy:
         src: /tmp/kubeadm_token_hash
         dest: /tmp/kubeadm_token_hash
-        mode: '0644'
-      run_once: true
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['k3s_cluster'] }}"
 
 - name: Join Nodes to Cluster
   hosts: master[1:2]
