@@ -77,11 +77,18 @@
       when: inventory_hostname == groups['master'][0]
       register: kubeadm_token_hash
 
-    - name: Fetch kubeadm_token_hash from master[0]
-      fetch:
+    # - name: Fetch kubeadm_token_hash from master[0]
+    #   fetch:
+    #     src: /tmp/kubeadm_token_hash
+    #     dest: /tmp/kubeadm_token_hash
+    #   when: inventory_hostname == groups['master'][0]
+
+    - name: Synchronize kubeadm_token_hash to other nodes
+      synchronize:
         src: /tmp/kubeadm_token_hash
         dest: /tmp/kubeadm_token_hash
-      when: inventory_hostname == groups['master'][0]
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['k3s_cluster'] }}"
 
     - name: Copy kube config file to user's home directory
       shell: |
