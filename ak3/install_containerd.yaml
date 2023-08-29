@@ -1,6 +1,6 @@
 ---
-- name: Install containerd
-  hosts: k3s_cluster:children
+- name: Install and configure containerd
+  hosts: k3s_cluster
   become: true
   tasks:
     - name: Update apt cache
@@ -37,3 +37,13 @@
         name: containerd
         state: started
         enabled: yes
+
+    - name: Create /etc/containerd directory
+      file:
+        path: /etc/containerd
+        state: directory
+
+    - name: Generate containerd config.toml
+      shell: "containerd config default | tee /etc/containerd/config.toml"
+      args:
+        creates: /etc/containerd/config.toml
