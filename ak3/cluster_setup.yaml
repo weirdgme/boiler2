@@ -41,7 +41,7 @@
           - kubelet
           - kubeadm
           - kubectl
-        state: hold
+        state: present
 
     - name: Disable swap
       command: swapoff -a
