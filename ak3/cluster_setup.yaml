@@ -35,15 +35,6 @@
     #       - kubectl
     #     state: present
 
-    # - name: Hold Kubernetes packages
-    #   dpkg_selections:
-    #     name: "{{ item }}"
-    #     selection: hold
-    #   loop:
-    #     - kubelet
-    #     - kubeadm
-    #     - kubectl
-
     # - name: Disable swap
     #   command: swapoff -a
     #   when: ansible_os_family == "Debian"
@@ -81,6 +72,15 @@
       command: kubeadm init --control-plane-endpoint={{ groups['master'][0] }} --pod-network-cidr=10.244.0.0/16
       when: inventory_hostname == groups['master'][0]
 
+    - name: Create a token and retrieve its hash
+      shell: |
+        TOKEN=$(kubeadm token create)
+        HASH=$(openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')
+        echo "token: $TOKEN" > /tmp/kubeadm_token_hash
+        echo "hash: $HASH" >> /tmp/kubeadm_token_hash
+      when: inventory_hostname == groups['master'][0]
+      register: kubeadm_token_hash
+
     - name: Copy kube config file to user's home directory
       shell: |
         mkdir -p $HOME/.kube &&
@@ -92,16 +92,24 @@
   hosts: master[1:2]
   become: yes
   tasks:
+    - name: Retrieve token and hash
+      shell: cat /tmp/kubeadm_token_hash
+      register: kubeadm_token_hash
+
     - name: Join master nodes to cluster
-      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ hostvars[groups['master'][0]]['token'] }} --discovery-token-ca-cert-hash {{ hostvars[groups['master'][0]]['hash'] }} --control-plane
+      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ kubeadm_token_hash.stdout_lines[0].split(': ')[1] }} --discovery-token-ca-cert-hash {{ kubeadm_token_hash.stdout_lines[1].split(': ')[1] }} --control-plane
       when: inventory_hostname in groups['master']
 
 - name: Join Worker Nodes to Cluster
   hosts: node
   become: yes
   tasks:
+    - name: Retrieve token and hash
+      shell: cat /tmp/kubeadm_token_hash
+      register: kubeadm_token_hash
+
     - name: Join worker nodes to cluster
-      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ hostvars[groups['master'][0]]['token'] }} --discovery-token-ca-cert-hash {{ hostvars[groups['master'][0]]['hash'] }}
+      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ kubeadm_token_hash.stdout_lines[0].split(': ')[1] }} --discovery-token-ca-cert-hash {{ kubeadm_token_hash.stdout_lines[1].split(': ')[1] }}
       when: inventory_hostname in groups['node']
 
 - name: Install Network Plugin
