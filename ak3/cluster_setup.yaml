@@ -1,0 +1,95 @@
+---
+- name: Setup Kubernetes Cluster
+  hosts: k3s_cluster
+  become: yes
+  tasks:
+    - name: Update and Upgrade APT
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - curl
+          - containerd
+        state: present
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+
+    - name: Install Kubernetes packages
+      apt:
+        name:
+          - kubeadm
+          - kubectl
+          - kubelet
+        state: present
+
+    - name: Disable swap
+      command: swapoff -a
+      when: ansible_os_family == "Debian"
+
+    - name: Remove swap from fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: '.*swap.*'
+        state: absent
+
+    - name: Enable bridging
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        state: present
+        reload: yes
+
+    - name: Enable br_netfilter
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: Reboot the server
+      reboot:
+
+- name: Initialize Kubernetes Cluster
+  hosts: master[0]
+  become: yes
+  tasks:
+    - name: Initialize the cluster
+      command: kubeadm init --control-plane-endpoint={{ groups['master'][0] }} --pod-network-cidr=10.244.0.0/16
+      when: inventory_hostname == groups['master'][0]
+
+    - name: Copy kube config file to user's home directory
+      command: |
+        mkdir -p $HOME/.kube
+        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        chown $(id -u):$(id -g) $HOME/.kube/config
+      when: inventory_hostname == groups['master'][0]
+
+- name: Join Nodes to Cluster
+  hosts: master[1:2]
+  become: yes
+  tasks:
+    - name: Join master nodes to cluster
+      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ hostvars[groups['master'][0]]['token'] }} --discovery-token-ca-cert-hash {{ hostvars[groups['master'][0]]['hash'] }} --control-plane
+      when: inventory_hostname in groups['master']
+
+- name: Join Worker Nodes to Cluster
+  hosts: node
+  become: yes
+  tasks:
+    - name: Join worker nodes to cluster
+      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ hostvars[groups['master'][0]]['token'] }} --discovery-token-ca-cert-hash {{ hostvars[groups['master'][0]]['hash'] }}
+      when: inventory_hostname in groups['node']
+
+- name: Install Network Plugin
+  hosts: master[0]
+  become: yes
+  tasks:
+    - name: Install Flannel
+      command: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+      when: inventory_hostname == groups['master'][0]
+
