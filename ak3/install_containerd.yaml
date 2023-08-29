@@ -94,5 +94,5 @@
         backrefs: yes
       when: swap_status.rc == 0
 
-    # - name: Reboot the server
-    #   reboot:
+    - name: Reboot the server
+      reboot:
