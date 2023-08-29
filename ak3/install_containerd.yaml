@@ -47,3 +47,9 @@
       shell: "containerd config default | tee /etc/containerd/config.toml"
       args:
         creates: /etc/containerd/config.toml
+
+    - name: Set SystemdCgroup to true in config.toml
+      lineinfile:
+        path: /etc/containerd/config.toml
+        regexp: '^\s*SystemdCgroup\s*='
+        line: '  SystemdCgroup = true'
