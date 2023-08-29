@@ -88,6 +88,17 @@
         chown $(id -u):$(id -g) $HOME/.kube/config
       when: inventory_hostname == groups['master'][0]
 
+- name: Copy kubeadm_token_hash to other nodes
+  hosts: k3s_cluster
+  become: yes
+  tasks:
+    - name: Copy kubeadm_token_hash from master[0] to other nodes
+      copy:
+        src: "/tmp/kubeadm_token_hash"
+        dest: "/tmp/kubeadm_token_hash"
+      when: inventory_hostname != groups['master'][0]
+      delegate_to: "{{ groups['master'][0] }}"
+
 - name: Join Nodes to Cluster
   hosts: master[1:2]
   become: yes
