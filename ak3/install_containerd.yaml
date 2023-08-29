@@ -54,7 +54,7 @@
         creates: /etc/containerd/config.toml
 
     - name: Set SystemdCgroup to true in config.toml
-      lineinfile:
+      replace:
         path: /etc/containerd/config.toml
-        regexp: '^\s*SystemdCgroup\s*='
-        line: '  SystemdCgroup = true'
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
