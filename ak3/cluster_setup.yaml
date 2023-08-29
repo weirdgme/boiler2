@@ -164,8 +164,8 @@
     #     dest: /tmp/kubeadm_token_hash
     #   when: inventory_hostname == groups['master'][0]
 
-    - name: Synchronize kubeadm_token_hash to other nodes
-      synchronize:
+    - name: copy kubeadm_token_hash to other nodes
+      copy:
         src: /tmp/kubeadm_token_hash
         dest: /tmp/kubeadm_token_hash
       delegate_to: "{{ item }}"
