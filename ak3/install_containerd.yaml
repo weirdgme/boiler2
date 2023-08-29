@@ -56,5 +56,5 @@
     - name: Set SystemdCgroup to true in config.toml
       lineinfile:
         path: /etc/containerd/config.toml
-        regexp: 'SystemdCgroup = false'
-        replace: 'SystemdCgroup = true'
+        regexp: '^\s*SystemdCgroup\s*= false'
+        line: '  SystemdCgroup = true'
