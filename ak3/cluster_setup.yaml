@@ -36,12 +36,13 @@
         state: present
 
     - name: Hold Kubernetes packages
-      apt:
-        name:
-          - kubelet
-          - kubeadm
-          - kubectl
-        state: present
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - kubelet
+        - kubeadm
+        - kubectl
 
     - name: Disable swap
       command: swapoff -a
@@ -77,9 +78,9 @@
       when: inventory_hostname == groups['master'][0]
 
     - name: Copy kube config file to user's home directory
-      command: |
-        mkdir -p $HOME/.kube
-        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+      shell: |
+        mkdir -p $HOME/.kube &&
+        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config &&
         chown $(id -u):$(id -g) $HOME/.kube/config
       when: inventory_hostname == groups['master'][0]
 
