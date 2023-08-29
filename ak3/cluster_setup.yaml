@@ -12,6 +12,7 @@
       apt:
         name:
           - apt-transport-https
+          - ca-certificates
           - curl
           - containerd
         state: present
@@ -29,10 +30,18 @@
     - name: Install Kubernetes packages
       apt:
         name:
+          - kubelet
           - kubeadm
           - kubectl
-          - kubelet
         state: present
+
+    - name: Hold Kubernetes packages
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: hold
 
     - name: Disable swap
       command: swapoff -a
