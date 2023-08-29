@@ -77,6 +77,12 @@
       when: inventory_hostname == groups['master'][0]
       register: kubeadm_token_hash
 
+    - name: Fetch kubeadm_token_hash from master[0]
+      fetch:
+        src: /tmp/kubeadm_token_hash
+        dest: /tmp/kubeadm_token_hash
+      when: inventory_hostname == groups['master'][0]
+
     - name: Copy kube config file to user's home directory
       shell: |
         mkdir -p $HOME/.kube &&
