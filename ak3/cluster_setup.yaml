@@ -97,7 +97,7 @@
       register: kubeadm_token_hash
 
     - name: Join master nodes to cluster
-      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ kubeadm_token_hash.stdout_lines[0].split(': ')[1] }} --discovery-token-ca-cert-hash {{ kubeadm_token_hash.stdout_lines[1].split(': ')[1] }} --control-plane
+      command: "kubeadm join {{ groups['master'][0] }}:6443 --token {{ kubeadm_token_hash.stdout_lines[0].split(': ')[1] }} --discovery-token-ca-cert-hash {{ kubeadm_token_hash.stdout_lines[1].split(': ')[1] }} --control-plane"
       when: inventory_hostname in groups['master']
 
 - name: Join Worker Nodes to Cluster
@@ -109,7 +109,7 @@
       register: kubeadm_token_hash
 
     - name: Join worker nodes to cluster
-      command: kubeadm join {{ groups['master'][0] }}:6443 --token {{ kubeadm_token_hash.stdout_lines[0].split(': ')[1] }} --discovery-token-ca-cert-hash {{ kubeadm_token_hash.stdout_lines[1].split(': ')[1] }}
+      command: "kubeadm join {{ groups['master'][0] }}:6443 --token {{ kubeadm_token_hash.stdout_lines[0].split(': ')[1] }} --discovery-token-ca-cert-hash {{ kubeadm_token_hash.stdout_lines[1].split(': ')[1] }}"
       when: inventory_hostname in groups['node']
 
 - name: Install Network Plugin
