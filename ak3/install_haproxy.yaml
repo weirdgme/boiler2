@@ -1,7 +1,7 @@
 ---
 - name: Install HAProxy
   hosts: haproxy
-  # become: true
+  become: yes
   tasks:
     - name: Install HAProxy
       apt:
@@ -14,6 +14,13 @@
         dest: /etc/haproxy/haproxy.cfg
       notify:
         - Restart HAProxy
+
+    - name: Allow user to run haproxy without password
+      lineinfile:
+        path: /etc/sudoers.d/haproxy
+        line: 'yourusername ALL=(ALL:ALL) NOPASSWD: /usr/sbin/haproxy'
+        create: yes
+      validate: 'visudo -cf %s'
 
   handlers:
     - name: Restart HAProxy
