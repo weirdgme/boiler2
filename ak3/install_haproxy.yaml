@@ -6,7 +6,7 @@
     - name: Install HAProxy
       apt:
         name: haproxy
-        state: absent
+        state: present
 
     - name: Copy HAProxy configuration
       copy:
@@ -20,7 +20,9 @@
         path: /etc/sudoers.d/haproxy
         line: 'serveradmin ALL=(ALL:ALL) NOPASSWD: /usr/sbin/haproxy'
         create: yes
-      validate: 'visudo -cf %s'
+
+    - name: Validate sudoers file
+      command: visudo -cf /etc/sudoers.d/haproxy
 
   handlers:
     - name: Restart HAProxy
