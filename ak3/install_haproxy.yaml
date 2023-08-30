@@ -6,7 +6,7 @@
     - name: Install HAProxy
       apt:
         name: haproxy
-        state: present
+        state: absent
 
     - name: Copy HAProxy configuration
       copy:
