@@ -1,6 +1,6 @@
 ---
 - name: Setup Kubernetes Cluster
-  hosts: k3s_cluster
+  hosts: k8s_cluster
   become: yes
   tasks:
     - name: Update and Upgrade APT
@@ -80,7 +80,7 @@
 #         src: /tmp/kubeadm_token_hash
 #         dest: /tmp/kubeadm_token_hash
 #       delegate_to: "{{ item }}"
-#       with_items: "{{ groups['k3s_cluster'] }}"
+#       with_items: "{{ groups['k8s_cluster'] }}"
 
 # - name: Join Nodes to Cluster
 #   hosts: master[1:2]
