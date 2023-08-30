@@ -1,12 +1,12 @@
 ---
 - name: Install HAProxy
   hosts: haproxy
-  become: true
+  # become: true
   tasks:
     - name: Install HAProxy
       apt:
         name: haproxy
-        state: absent
+        state: present
 
     - name: Copy HAProxy configuration
       copy:
