@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.netdata.rule=Host(`netdata.home.jimiumar.com`)"
+      - "traefik.http.routers.netdata.entrypoints=websecure"
+      - "traefik.http.routers.netdata.tls.certresolver=myresolver"
+    networks:
+      - monitoring
+      - frontend
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    configs:
+      - source: prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.home.jimiumar.com`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+    networks:
+      - monitoring
+      - frontend
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.home.jimiumar.com`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+    networks:
+      - monitoring
+      - frontend
+
+networks:
+  monitoring:
+    external: true
+  frontend:
+    external: true
+
+configs:
+  prometheus.yml:
+    external: true
